@@ -1,0 +1,44 @@
+{
+    "1a6aa009-0018-4ea6-ac4e-f370b31e07f3": {
+        "node_id": "1419e3c5-3e66-4b94-9688-81559e40ef39",
+        "cpu": 1,
+        "disk": 10,
+        "ram": 1
+    },
+    "33494d85-707d-41f8-854d-26ca5b2c1d3c": {
+        "node_id": "1419e3c5-3e66-4b94-9688-81559e40ef39",
+        "cpu": 2,
+        "disk": 20,
+        "ram": 2
+    },
+    "b29aca7b-53a4-406a-9998-2839dcb0641c": {
+        "node_id": "a33c0994-9f11-4e9d-8d70-b349a3f69eff",
+        "cpu": 3,
+        "disk": 30,
+        "ram": 3
+    },
+    "22f6ab10-7059-4be1-8beb-f4834199f034": {
+        "node_id": "a33c0994-9f11-4e9d-8d70-b349a3f69eff",
+        "cpu": 4,
+        "disk": 50,
+        "ram": 6
+    },
+    "ec5054fe-28de-4054-9ee1-7046ce4ebf5c": {
+        "node_id": "1419e3c5-3e66-4b94-9688-81559e40ef39",
+        "cpu": 2,
+        "disk": 40,
+        "ram": 4
+    },
+    "259f7847-643c-44f3-9509-c55c9669dd64": {
+        "node_id": "5c559714-d2bd-4cbb-a744-306b3bdbf606",
+        "cpu": 1,
+        "disk": 1,
+        "ram": 1
+    },
+    "8eef4c64-2bd9-4d4f-b825-ee4244dbe1e6": {
+        "node_id": "5c559714-d2bd-4cbb-a744-306b3bdbf606",
+        "cpu": 1,
+        "disk": 9,
+        "ram": 3
+    }
+}
