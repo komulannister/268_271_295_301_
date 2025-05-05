@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px;
+        }
+        input {
+            margin: 5px;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Node Management</h1>
+
+    <h2>Add Node</h2>
+    <form id="addNodeForm">
+        <input type="text" id="nodeName" placeholder="Node Name" required><br>
+        <input type="number" id="cpu" placeholder="CPU (cores)" required><br>
+        <input type="number" id="ram" placeholder="RAM (GB)" required><br>
+        <input type="number" id="disk" placeholder="Disk (GB)" required><br>
+        <button type="submit">Add Node</button>
+    </form>
+
+    <h2>Node List</h2>
+    <table id="nodeTable">
+        <thead>
+            <tr>
+                <th>Node ID</th>
+                <th>Node Name</th>
+                <th>CPU</th>
+                <th>RAM</th>
+                <th>Disk</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Node rows will be inserted here dynamically -->
+        </tbody>
+    </table>
+
+    <script>
+        // Fetch and display the list of nodes when the page loads
+        function fetchNodes() {
+            fetch('/list_nodes', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const nodeTableBody = document.querySelector('#nodeTable tbody');
+                nodeTableBody.innerHTML = ''; // Clear the table before adding new rows
+                for (const nodeId in data) {
+                    const node = data[nodeId];
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${nodeId}</td>
+                        <td>${node.node_name || 'Unnamed'}</td>
+                        <td>${node.cpu}</td>
+                        <td>${node.ram}</td>
+                        <td>${node.disk}</td>
+                        <td>${node.status}</td>
+                        <td><button onclick="deleteNode('${nodeId}')">Delete</button></td>
+                    `;
+                    nodeTableBody.appendChild(row);
+                }
+            });
+        }
+
+        // Add a new node
+        document.getElementById('addNodeForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const nodeName = document.getElementById('nodeName').value;
+            const cpu = document.getElementById('cpu').value;
+            const ram = document.getElementById('ram').value;
+            const disk = document.getElementById('disk').value;
+
+            fetch('/add_node', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    node_name: nodeName,
+                    cpu: parseInt(cpu),
+                    ram: parseInt(ram),
+                    disk: parseInt(disk)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                fetchNodes(); // Refresh the list of nodes
+                document.getElementById('addNodeForm').reset(); // Clear the form fields
+            });
+        });
+
+        // Delete a node
+        function deleteNode(nodeId) {
+            fetch('/remove_node', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ node_id: nodeId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                fetchNodes(); // Refresh the list of nodes
+            });
+        }
+
+        // Initial fetch to load nodes
+        fetchNodes();
+    </script>
+
+</body>
+</html>

@@ -5,13 +5,13 @@ from flask import Flask, jsonify, request
 from datetime import datetime, timedelta
 import threading
 import time
+import requests
 
 app = Flask(__name__)
 
 NODES_FILE = "nodes.json"
 PODS_FILE = "pods.json"
 
-# Load existing nodes from file
 def load_nodes():
     try:
         with open(NODES_FILE, "r") as f:
@@ -20,7 +20,6 @@ def load_nodes():
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
-# Load existing pods from file
 def load_pods():
     try:
         with open(PODS_FILE, "r") as f:
@@ -29,18 +28,20 @@ def load_pods():
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
-# Save nodes to file
 def save_nodes():
     with open(NODES_FILE, "w") as f:
         json.dump(nodes, f, indent=4)
 
-# Save pods to file
 def save_pods():
     with open(PODS_FILE, "w") as f:
         json.dump(pods, f, indent=4)
 
 nodes = load_nodes()
 pods = load_pods()
+
+@app.route('/')
+def index():
+    return app.send_static_file('index.html')
 
 @app.route('/list_nodes', methods=['GET'])
 def list_nodes():
@@ -50,6 +51,7 @@ def list_nodes():
 def add_node():
     data = request.get_json()
     node_id = str(uuid.uuid4())
+    
     nodes[node_id] = {
         **data,
         "last_heartbeat": datetime.utcnow().isoformat(),
@@ -57,14 +59,16 @@ def add_node():
     }
     save_nodes()
 
-    # Start Docker container
     container_name = f"node_{node_id}"
-    image_name = "alpine"  # Replace with your image if needed
+    image_name = "alpine"
     command = ["docker", "run", "-d", "--name", container_name, image_name, "sleep", "infinity"]
     try:
         container_id = subprocess.check_output(command).decode().strip()
         nodes[node_id]["container_id"] = container_id
         save_nodes()
+
+        threading.Thread(target=simulate_heartbeat, args=(node_id, 60), daemon=True).start()
+
     except subprocess.CalledProcessError as e:
         return jsonify({"error": "Failed to start Docker container", "details": str(e)}), 500
 
@@ -81,10 +85,17 @@ def remove_node():
             try:
                 subprocess.run(["docker", "rm", "-f", container_id], check=True)
             except subprocess.CalledProcessError:
-                pass  # Ignore if the container was already removed
+                pass
+
+        # Delete all pods associated with this node
+        pods_to_remove = [pod_id for pod_id, pod in pods.items() if pod.get("node_id") == node_id]
+        for pod_id in pods_to_remove:
+            del pods[pod_id]
+        save_pods()
+
         del nodes[node_id]
         save_nodes()
-        return jsonify({"message": f"Node {node_id} removed"})
+        return jsonify({"message": f"Node {node_id} and its {len(pods_to_remove)} pod(s) removed successfully."})
     else:
         return jsonify({"error": "Node not found"}), 404
 
@@ -141,6 +152,15 @@ def heartbeat():
         save_nodes()
         return jsonify({"message": f"Heartbeat received from {node_id}"}), 200
     return jsonify({"error": "Node not found"}), 404
+
+def simulate_heartbeat(node_id, duration=60):
+    end_time = time.time() + duration
+    while time.time() < end_time:
+        try:
+            requests.post("http://127.0.0.1:5000/heartbeat", json={"node_id": node_id})
+        except Exception as e:
+            print(f"[Sim] Failed to send heartbeat for {node_id}: {e}")
+        time.sleep(5)
 
 def monitor_node_health(interval=10, timeout=30):
     while True:

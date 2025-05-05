@@ -40,5 +40,17 @@
         "cpu": 1,
         "disk": 9,
         "ram": 3
+    },
+    "3b9feccc-cab0-407b-828a-cdc004d80dd2": {
+        "node_id": "9ca3fa33-4549-4b1c-8ddf-0d2e84086f9e",
+        "cpu": 2,
+        "disk": 4,
+        "ram": 5
+    },
+    "876cbc61-c3f6-487c-8e49-b703147a13b3": {
+        "node_id": "9c223ceb-d3a3-4505-bdd2-a6dc2f58da3d",
+        "cpu": 7,
+        "disk": 2,
+        "ram": 5
     }
 }
